@@ -33,73 +33,42 @@
     {% endif %}
 
     {% if result %}
-      <section>
-        <div class="section-head">
-          <h2>How the parts were found</h2>
-          <p>{{ result.found }} regions kept. Showing the {{ result.shown }} largest.</p>
-        </div>
-        <div class="steps">
-          {% for step in result.steps %}
-            <figure>
-              <img src="{{ step.src }}" alt="{{ step.title }}">
-              <figcaption>{{ step.title }}</figcaption>
-            </figure>
-          {% endfor %}
-        </div>
-      </section>
+      <nav class="pages" aria-label="Inspection views">
+        <button type="button" class="page-tab active" data-page="crops">Crops</button>
+        <button type="button" class="page-tab" data-page="components">Components</button>
+        <button type="button" class="page-tab" data-page="defects">Defects</button>
+        <button type="button" class="page-tab" data-page="steps">How it was found</button>
+      </nav>
 
-      <section>
-        <div class="section-head">
-          <h2>Original and identified parts</h2>
-          <p>The same board, then the component names, then the defect names.</p>
-        </div>
-        <div class="compare">
-          <figure>
-            <img src="{{ result.original }}" alt="Original board">
-            <figcaption>Original</figcaption>
-          </figure>
-          <figure>
-            <img src="{{ result.component_view }}" alt="Components with confidence">
-            <figcaption class="tag component">Component and confidence</figcaption>
-          </figure>
-          <figure>
-            <img src="{{ result.defect_view }}" alt="Defects with confidence">
-            <figcaption class="tag defect">Defect and confidence</figcaption>
-          </figure>
-        </div>
-      </section>
-
-      <section>
+      <section class="view active" id="crops">
         <div class="section-head">
           <h2>Crops</h2>
-          <p>Each found region at 224 by 224, with both scores.</p>
+          <p>{{ result.shown }} regions, each resized to 224 by 224. {{ result.found }} regions were kept.</p>
         </div>
         <div class="crops">
           {% for row in result.rows %}
             <figure>
               <img src="{{ row.crop }}" alt="Crop {{ loop.index }}">
-              <figcaption>
-                <strong>{{ loop.index }}. {{ row.component }}</strong>
-                <span>{{ row.component_confidence }}</span>
-                <em>{{ row.defect }} {{ row.defect_confidence }}</em>
-              </figcaption>
+              <figcaption><strong>{{ loop.index }}</strong></figcaption>
             </figure>
           {% endfor %}
         </div>
       </section>
 
-      <section>
+      <section class="view" id="components" hidden>
         <div class="section-head">
-          <h2>Results</h2>
+          <h2>Components</h2>
+          <p>Each box shows the component name and its confidence.</p>
         </div>
+        <figure class="board">
+          <img src="{{ result.component_view }}" alt="Components with confidence">
+        </figure>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
                 <th>#</th>
                 <th>Component</th>
-                <th>Confidence</th>
-                <th>Defect</th>
                 <th>Confidence</th>
               </tr>
             </thead>
@@ -109,6 +78,34 @@
                   <td>{{ loop.index }}</td>
                   <td>{{ row.component }}</td>
                   <td>{{ row.component_confidence }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="view" id="defects" hidden>
+        <div class="section-head">
+          <h2>Defects</h2>
+          <p>Each box shows the defect name and its confidence.</p>
+        </div>
+        <figure class="board">
+          <img src="{{ result.defect_view }}" alt="Defects with confidence">
+        </figure>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Defect</th>
+                <th>Confidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in result.rows %}
+                <tr>
+                  <td>{{ loop.index }}</td>
                   <td>{{ row.defect }}</td>
                   <td>{{ row.defect_confidence }}</td>
                 </tr>
@@ -117,23 +114,60 @@
           </table>
         </div>
       </section>
+
+      <section class="view" id="steps" hidden>
+        <div class="section-head">
+          <h2>How it was found</h2>
+          <p>The original board, then each step used to mark the regions.</p>
+        </div>
+        <figure class="board">
+          <img src="{{ result.original }}" alt="Original board">
+          <figcaption>Original</figcaption>
+        </figure>
+        <div class="steps">
+          {% for step in result.steps %}
+            <figure>
+              <img src="{{ step.src }}" alt="{{ step.title }}">
+              <figcaption>{{ step.title }}</figcaption>
+            </figure>
+          {% endfor %}
+        </div>
+      </section>
     {% endif %}
   </main>
   <script>
-    document.querySelector(".upload").addEventListener("submit", function (event) {
-      var button = event.submitter;
-      if (button && button.name === "sample") {
-        var input = document.createElement("input");
-        input.type = "hidden";
-        input.name = "sample";
-        input.value = "1";
-        event.currentTarget.appendChild(input);
-      }
-      window.setTimeout(function () {
-        if (!button) return;
-        button.disabled = true;
-        button.textContent = "Inspecting…";
-      }, 0);
+    var form = document.querySelector(".upload");
+    if (form) {
+      form.addEventListener("submit", function (event) {
+        var button = event.submitter;
+        if (button && button.name === "sample") {
+          var input = document.createElement("input");
+          input.type = "hidden";
+          input.name = "sample";
+          input.value = "1";
+          event.currentTarget.appendChild(input);
+        }
+        window.setTimeout(function () {
+          if (!button) return;
+          button.disabled = true;
+          button.textContent = "Inspecting…";
+        }, 0);
+      });
+    }
+
+    document.querySelectorAll(".page-tab").forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        var page = tab.getAttribute("data-page");
+        document.querySelectorAll(".page-tab").forEach(function (item) {
+          item.classList.toggle("active", item === tab);
+        });
+        document.querySelectorAll(".view").forEach(function (view) {
+          var show = view.id === page;
+          view.hidden = !show;
+          view.classList.toggle("active", show);
+        });
+        window.scrollTo(0, 0);
+      });
     });
   </script>
 </body>

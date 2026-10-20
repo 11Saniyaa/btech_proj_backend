@@ -33,7 +33,18 @@ body {
 h1 { margin: 2px 0 0; font-size: 26px; font-weight: 650; }
 main { max-width: 1100px; margin: 0 auto; padding: 22px 20px 64px; }
 h2 { margin: 0; font-size: 18px; }
-section { margin-top: 28px; }
+.pages {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 6px;
+  background: white;
+  border: 1px solid #d5deea;
+  border-radius: 12px;
+}
+.page-tab { flex: 1; }
+.view { margin-top: 18px; }
+.view[hidden] { display: none; }
 .section-head { margin-bottom: 12px; }
 .section-head p { margin: 4px 0 0; color: #5c6b80; font-size: 14px; }
 .upload {
@@ -64,6 +75,9 @@ button:hover { background: #18583c; }
 button.ghost { background: white; color: #1d4e89; border: 1px solid #b7c7dc; }
 button.ghost:hover { background: #f3f7fb; }
 button:disabled { opacity: 0.7; cursor: wait; }
+button.page-tab { background: transparent; color: #314056; }
+button.page-tab:hover { background: #f3f7fb; }
+button.page-tab.active, button.page-tab.active:hover { background: #122033; color: white; }
 .error {
   margin: 12px 0 0;
   padding: 10px 12px;
@@ -73,8 +87,9 @@ button:disabled { opacity: 0.7; cursor: wait; }
 }
 .steps, .crops, .compare { display: grid; gap: 12px; }
 .steps { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); }
-.compare { grid-template-columns: 1fr; }
-.crops { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+.crops { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.board img { max-height: 62vh; object-fit: contain; margin: 0 auto; }
+.board { margin-bottom: 14px; }
 figure {
   margin: 0;
   background: white;
@@ -98,13 +113,13 @@ figcaption.defect { color: #9a3412; }
   overflow: auto;
   box-shadow: 0 6px 16px rgba(18, 32, 51, 0.04);
 }
-table { width: 100%; border-collapse: collapse; min-width: 640px; }
+table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid #e6edf5; }
 th { background: #f6f9fc; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: #5c6b80; }
 tr:last-child td { border-bottom: 0; }
 tbody tr:hover { background: #f8fbff; }
 @media (max-width: 720px) {
-  .upload { align-items: stretch; }
+  .upload, .pages { align-items: stretch; flex-direction: column; }
   .actions { width: 100%; }
-  button { flex: 1; }
+  .actions button, .page-tab { flex: 1; }
 }
