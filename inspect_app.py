@@ -157,6 +157,9 @@ def load_model(path):
     model = MambaClassifier(num_classes=len(blob["labels"]), **cfg).to(DEVICE)
     model.load_state_dict(blob["state"])
     model.eval()
+    for module in model.modules():
+        if isinstance(module, nn.ReLU):
+            module.inplace = False
     return model, list(blob["labels"])
 
 
@@ -255,15 +258,51 @@ def pretty(name):
     return name.replace("_", " ")
 
 
-@torch.no_grad()
+def as_tensor(rgb):
+    tensor = torch.from_numpy(np.ascontiguousarray(rgb)).permute(2, 0, 1).float().div(255.0)
+    mean = torch.tensor(MEAN, device=tensor.device).view(3, 1, 1)
+    std = torch.tensor(STD, device=tensor.device).view(3, 1, 1)
+    return ((tensor - mean) / std).unsqueeze(0)
+
+
+def grad_cam(model, rgb):
+    saved = {}
+
+    def save_activation(module, inputs, output):
+        saved["activation"] = output
+
+    def save_gradient(module, grad_input, grad_output):
+        saved["gradient"] = grad_output[0]
+
+    forward_hook = model.down3[0].register_forward_hook(save_activation)
+    backward_hook = model.down3[0].register_full_backward_hook(save_gradient)
+    logits = model(as_tensor(rgb))
+    probability = torch.softmax(logits, dim=1)[0]
+    index = int(probability.argmax())
+    model.zero_grad(set_to_none=True)
+    logits[0, index].backward()
+    forward_hook.remove()
+    backward_hook.remove()
+    activation = saved["activation"].detach()
+    gradient = saved["gradient"].detach()
+    weight = gradient.mean(dim=(2, 3), keepdim=True)
+    cam = torch.relu((weight * activation).sum(dim=1)[0])
+    cam = cam - cam.min()
+    peak = float(cam.max())
+    if peak > 0:
+        cam = cam / peak
+    heat = cv2.resize(cam.cpu().numpy().astype(np.float32), (IMG_SIZE, IMG_SIZE))
+    color = cv2.applyColorMap(np.uint8(np.clip(heat, 0, 1) * 255), cv2.COLORMAP_JET)
+    color = cv2.cvtColor(color, cv2.COLOR_BGR2RGB)
+    overlay = np.clip(rgb.astype(np.float32) * 0.5 + color.astype(np.float32) * 0.5, 0, 255).astype(np.uint8)
+    return index, float(probability[index].detach()), overlay
+
+
 def classify(model, labels, rgb):
-    tensor = torch.from_numpy(rgb).permute(2, 0, 1).float().div(255.0)
-    mean = torch.tensor(MEAN).view(3, 1, 1)
-    std = torch.tensor(STD).view(3, 1, 1)
-    tensor = ((tensor - mean) / std).unsqueeze(0)
-    prob = torch.softmax(model(tensor), dim=1)[0]
-    index = int(prob.argmax())
-    return pretty(labels[index]), float(prob[index])
+    with torch.no_grad():
+        probability = torch.softmax(model(as_tensor(rgb)), dim=1)[0]
+    index = int(probability.argmax())
+    return pretty(labels[index]), float(probability[index])
 
 
 def jpg_uri(image):
@@ -310,13 +349,15 @@ def inspect(bgr):
         if crop is None:
             continue
         rgb = to_224(crop)
-        component, component_confidence = classify(COMP_MODEL, COMP_LABELS, rgb)
-        defect, defect_confidence = classify(DEFECT_MODEL, DEFECT_LABELS, rgb)
+        component_index, component_confidence, component_map = grad_cam(COMP_MODEL, rgb)
+        defect_index, defect_confidence, defect_map = grad_cam(DEFECT_MODEL, rgb)
         rows.append({
-            "component": component,
+            "component": pretty(COMP_LABELS[component_index]),
             "component_confidence": f"{component_confidence:.2f}",
-            "defect": defect,
+            "component_map": jpg_uri(component_map),
+            "defect": pretty(DEFECT_LABELS[defect_index]),
             "defect_confidence": f"{defect_confidence:.2f}",
+            "defect_map": jpg_uri(defect_map),
             "crop": jpg_uri(rgb),
         })
         crops.append(rgb)

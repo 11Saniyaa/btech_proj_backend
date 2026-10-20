@@ -37,6 +37,8 @@
         <button type="button" class="page-tab active" data-page="crops">Crops</button>
         <button type="button" class="page-tab" data-page="components">Components</button>
         <button type="button" class="page-tab" data-page="defects">Defects</button>
+        <button type="button" class="page-tab" data-page="component-map">Component map</button>
+        <button type="button" class="page-tab" data-page="defect-map">Defect map</button>
         <button type="button" class="page-tab" data-page="steps">How it was found</button>
       </nav>
 
@@ -112,6 +114,36 @@
               {% endfor %}
             </tbody>
           </table>
+        </div>
+      </section>
+
+      <section class="view" id="component-map" hidden>
+        <div class="section-head">
+          <h2>Component map</h2>
+          <p>Grad-CAM for the component decision. Bright areas are the pixels that supported that part name.</p>
+        </div>
+        <div class="crops">
+          {% for row in result.rows %}
+            <figure>
+              <img src="{{ row.component_map }}" alt="Component map {{ loop.index }}">
+              <figcaption><strong>{{ loop.index }}. {{ row.component }}</strong> {{ row.component_confidence }}</figcaption>
+            </figure>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="view" id="defect-map" hidden>
+        <div class="section-head">
+          <h2>Defect map</h2>
+          <p>Grad-CAM for the defect decision. Bright areas are the pixels that supported that defect name.</p>
+        </div>
+        <div class="crops">
+          {% for row in result.rows %}
+            <figure>
+              <img src="{{ row.defect_map }}" alt="Defect map {{ loop.index }}">
+              <figcaption><strong>{{ loop.index }}. {{ row.defect }}</strong> {{ row.defect_confidence }}</figcaption>
+            </figure>
+          {% endfor %}
         </div>
       </section>
 
