@@ -7,84 +7,134 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <main>
-    <h1>PCB inspection</h1>
-    <p class="lead">Upload a board image. The page finds part boxes, then names the component and the defect with a confidence for each.</p>
+  <header class="top">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"></span>
+      <div>
+        <p class="eyebrow">Board inspection</p>
+        <h1>PCB inspection</h1>
+      </div>
+    </div>
+  </header>
 
+  <main>
     <form class="upload" action="/inspect" method="post" enctype="multipart/form-data">
-      <input type="file" name="image" accept="image/*">
-      <button type="submit">Inspect</button>
-      <button type="submit" name="sample" value="1">Use sample board</button>
+      <label class="file">
+        <span>Board image</span>
+        <input type="file" name="image" accept="image/*">
+      </label>
+      <div class="actions">
+        <button type="submit">Inspect</button>
+        <button type="submit" name="sample" value="1" class="ghost">Use sample board</button>
+      </div>
     </form>
     {% if error %}
       <p class="error">{{ error }}</p>
     {% endif %}
 
     {% if result %}
-      <h2>How the parts were found</h2>
-      <p>{{ result.found }} boxes kept. Showing the {{ result.shown }} largest.</p>
-      <div class="steps">
-        {% for step in result.steps %}
-          <figure>
-            <img src="{{ step.src }}" alt="{{ step.title }}">
-            <figcaption>{{ step.title }}</figcaption>
-          </figure>
-        {% endfor %}
-      </div>
-
-      <h2>Original and identified parts</h2>
-      <div class="compare">
-        <figure>
-          <img src="{{ result.original }}" alt="Original board">
-          <figcaption>Original</figcaption>
-        </figure>
-        <figure>
-          <img src="{{ result.component_view }}" alt="Components with confidence">
-          <figcaption>Component and confidence</figcaption>
-        </figure>
-        <figure>
-          <img src="{{ result.defect_view }}" alt="Defects with confidence">
-          <figcaption>Defect and confidence</figcaption>
-        </figure>
-      </div>
-
-      <h2>Crops</h2>
-      <div class="crops">
-        {% for row in result.rows %}
-          <figure>
-            <img src="{{ row.crop }}" alt="Crop {{ loop.index }}">
-            <figcaption>
-              {{ loop.index }}. {{ row.component }} {{ row.component_confidence }}<br>
-              {{ row.defect }} {{ row.defect_confidence }}
-            </figcaption>
-          </figure>
-        {% endfor %}
-      </div>
-
-      <h2>Results</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Component</th>
-            <th>Confidence</th>
-            <th>Defect</th>
-            <th>Confidence</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in result.rows %}
-            <tr>
-              <td>{{ loop.index }}</td>
-              <td>{{ row.component }}</td>
-              <td>{{ row.component_confidence }}</td>
-              <td>{{ row.defect }}</td>
-              <td>{{ row.defect_confidence }}</td>
-            </tr>
+      <section>
+        <div class="section-head">
+          <h2>How the parts were found</h2>
+          <p>{{ result.found }} regions kept. Showing the {{ result.shown }} largest.</p>
+        </div>
+        <div class="steps">
+          {% for step in result.steps %}
+            <figure>
+              <img src="{{ step.src }}" alt="{{ step.title }}">
+              <figcaption>{{ step.title }}</figcaption>
+            </figure>
           {% endfor %}
-        </tbody>
-      </table>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>Original and identified parts</h2>
+          <p>The same board, then the component names, then the defect names.</p>
+        </div>
+        <div class="compare">
+          <figure>
+            <img src="{{ result.original }}" alt="Original board">
+            <figcaption>Original</figcaption>
+          </figure>
+          <figure>
+            <img src="{{ result.component_view }}" alt="Components with confidence">
+            <figcaption class="tag component">Component and confidence</figcaption>
+          </figure>
+          <figure>
+            <img src="{{ result.defect_view }}" alt="Defects with confidence">
+            <figcaption class="tag defect">Defect and confidence</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>Crops</h2>
+          <p>Each found region at 224 by 224, with both scores.</p>
+        </div>
+        <div class="crops">
+          {% for row in result.rows %}
+            <figure>
+              <img src="{{ row.crop }}" alt="Crop {{ loop.index }}">
+              <figcaption>
+                <strong>{{ loop.index }}. {{ row.component }}</strong>
+                <span>{{ row.component_confidence }}</span>
+                <em>{{ row.defect }} {{ row.defect_confidence }}</em>
+              </figcaption>
+            </figure>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>Results</h2>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Component</th>
+                <th>Confidence</th>
+                <th>Defect</th>
+                <th>Confidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in result.rows %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td>{{ row.component }}</td>
+                  <td>{{ row.component_confidence }}</td>
+                  <td>{{ row.defect }}</td>
+                  <td>{{ row.defect_confidence }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
     {% endif %}
   </main>
+  <script>
+    document.querySelector(".upload").addEventListener("submit", function (event) {
+      var button = event.submitter;
+      if (button && button.name === "sample") {
+        var input = document.createElement("input");
+        input.type = "hidden";
+        input.name = "sample";
+        input.value = "1";
+        event.currentTarget.appendChild(input);
+      }
+      window.setTimeout(function () {
+        if (!button) return;
+        button.disabled = true;
+        button.textContent = "Inspecting…";
+      }, 0);
+    });
+  </script>
 </body>
 </html>

@@ -1,50 +1,110 @@
 * { box-sizing: border-box; }
 body {
   margin: 0;
-  font-family: "Segoe UI", sans-serif;
-  background: #f4f6f8;
-  color: #1c2430;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: #eef2f6;
+  color: #172033;
 }
-main { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
-h1 { margin: 0 0 8px; font-size: 28px; }
-h2 { margin: 28px 0 10px; font-size: 18px; }
-.lead { margin: 0 0 18px; color: #445064; }
+.top {
+  background: #122033;
+  color: white;
+  padding: 22px 24px;
+}
+.brand {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.mark {
+  width: 14px;
+  height: 36px;
+  border-radius: 4px;
+  background: linear-gradient(#3ddc97, #2f6fed);
+}
+.eyebrow {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9eb0c7;
+}
+h1 { margin: 2px 0 0; font-size: 26px; font-weight: 650; }
+main { max-width: 1100px; margin: 0 auto; padding: 22px 20px 64px; }
+h2 { margin: 0; font-size: 18px; }
+section { margin-top: 28px; }
+.section-head { margin-bottom: 12px; }
+.section-head p { margin: 4px 0 0; color: #5c6b80; font-size: 14px; }
 .upload {
   display: flex;
-  gap: 10px;
-  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: end;
   flex-wrap: wrap;
   background: white;
-  border: 1px solid #d7dee8;
-  border-radius: 10px;
-  padding: 14px;
+  border: 1px solid #d5deea;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(18, 32, 51, 0.05);
 }
+.file { display: grid; gap: 6px; font-size: 13px; color: #5c6b80; }
+input[type="file"] { color: #172033; }
+.actions { display: flex; gap: 8px; }
 button {
   background: #1f6b4a;
   color: white;
   border: 0;
   border-radius: 8px;
-  padding: 8px 14px;
+  padding: 10px 16px;
+  font: inherit;
   cursor: pointer;
 }
-button:last-child { background: #24537a; }
-.error { color: #9b1c1c; }
-.steps, .crops, .compare {
-  display: grid;
-  gap: 12px;
+button:hover { background: #18583c; }
+button.ghost { background: white; color: #1d4e89; border: 1px solid #b7c7dc; }
+button.ghost:hover { background: #f3f7fb; }
+button:disabled { opacity: 0.7; cursor: wait; }
+.error {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fdecec;
+  color: #8d1d1d;
 }
-.steps { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.steps, .crops, .compare { display: grid; gap: 12px; }
+.steps { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); }
 .compare { grid-template-columns: 1fr; }
-.crops { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.crops { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
 figure {
   margin: 0;
   background: white;
-  border: 1px solid #d7dee8;
-  border-radius: 10px;
+  border: 1px solid #d5deea;
+  border-radius: 12px;
   overflow: hidden;
+  box-shadow: 0 6px 16px rgba(18, 32, 51, 0.04);
 }
-img { width: 100%; display: block; background: #111; }
-figcaption { padding: 8px; font-size: 13px; }
-table { width: 100%; border-collapse: collapse; background: white; }
-th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #e4eaf1; }
-th { background: #eef3f8; }
+img { width: 100%; display: block; background: #101820; }
+figcaption { padding: 8px 10px; font-size: 13px; color: #314056; }
+figcaption.tag { font-weight: 650; }
+figcaption.component { color: #1d4e89; }
+figcaption.defect { color: #9a3412; }
+.crops figcaption { display: grid; gap: 2px; }
+.crops strong { font-weight: 650; }
+.crops em { font-style: normal; color: #6a564c; }
+.table-wrap {
+  background: white;
+  border: 1px solid #d5deea;
+  border-radius: 12px;
+  overflow: auto;
+  box-shadow: 0 6px 16px rgba(18, 32, 51, 0.04);
+}
+table { width: 100%; border-collapse: collapse; min-width: 640px; }
+th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid #e6edf5; }
+th { background: #f6f9fc; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: #5c6b80; }
+tr:last-child td { border-bottom: 0; }
+tbody tr:hover { background: #f8fbff; }
+@media (max-width: 720px) {
+  .upload { align-items: stretch; }
+  .actions { width: 100%; }
+  button { flex: 1; }
+}

@@ -12,7 +12,7 @@ from flask import Flask, render_template, request
 ROOT = Path(__file__).resolve().parent
 IMG_SIZE = 224
 MAX_SIDE = 1400
-MAX_PARTS = 12
+MAX_PARTS = 20
 MEAN = (0.485, 0.456, 0.406)
 STD = (0.229, 0.224, 0.225)
 DEVICE = torch.device("cpu")
@@ -114,8 +114,9 @@ class ResBlock(nn.Module):
 
 
 class MambaClassifier(nn.Module):
-    def __init__(self, num_classes, in_dim, dim, res_depths, hybrid_depths, hybrid_mamba, hybrid_heads, d_state):
+    def __init__(self, num_classes, in_dim, dim, res_depths, hybrid_depths, hybrid_mamba, hybrid_heads, d_state, pool_size=4):
         super().__init__()
+        self.pool_size = pool_size
         self.stem = nn.Sequential(
             nn.Conv2d(3, in_dim, 3, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(in_dim), nn.ReLU(inplace=True),
@@ -144,7 +145,7 @@ class MambaClassifier(nn.Module):
     def forward(self, x):
         x = self.stage1(self.stem(x))
         x = self.stage2(self.down2(x))
-        x = F.adaptive_avg_pool2d(self.down3(x), (4, 4))
+        x = F.adaptive_avg_pool2d(self.down3(x), (self.pool_size, self.pool_size))
         x = self.stage3(x)
         x = self.stage4(self.down4(x))
         return self.fc(self.drop(self.pool(x).flatten(1)))
@@ -206,7 +207,7 @@ def component_proposals(bgr):
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
         area = w * h
-        if area < 0.00008 * image_area or area > 0.12 * image_area or w < 10 or h < 10:
+        if area < 0.00002 * image_area or area > 0.35 * image_area or w < 6 or h < 6:
             continue
         aspect = w / float(h)
         if aspect < 0.18 or aspect > 7.5:
